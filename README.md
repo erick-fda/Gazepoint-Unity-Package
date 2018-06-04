@@ -1,3 +1,5 @@
+<link href="markdown_style.css" rel="stylesheet"></link>
+
 <!--======================================================================================
     Gazepoint Unity Package README
 =======================================================================================-->
@@ -62,36 +64,3 @@ OpenGaze API version 2.0.
 [ref_github_profile]: https://github.com/erick-fda "Erick's GitHub Profile"
 
 [ref_bitbucket_profile]: https://bitbucket.org/erick-fda "Erick's Bitbucket Profile"
-
-<!--======================================================================================
-    Styles
-=======================================================================================-->
-<style>
-    table
-    {
-        border-collapse: collapse;
-    }
-
-    table, th, td
-    {
-        border: 1px solid #ffffff;
-    }
-
-    th
-    {
-        background-color: #66CA00;
-        color: #111111;
-    }
-
-    tr:nth-child(odd)
-    {
-        background-color: #222222;
-        color: #ffffff;
-    }
-
-    tr:nth-child(even)
-    {
-        background-color: #333333;
-        color: #ffffff;
-    }
-</style>
