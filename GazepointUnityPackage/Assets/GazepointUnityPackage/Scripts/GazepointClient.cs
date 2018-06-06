@@ -48,8 +48,7 @@ public class GazepointClient : MonoBehaviour
     [SerializeField] private bool _enableReadTime = false;
 
     /* String constants */
-    private const string RECORD_START_FLAG = "<REC";
-    private const string RECORD_END_FLAG = "\r\n";
+    private const string RECORD_REGEX = "<REC[^>]*>";
     private const string ENABLE_SEND = "<SET ID=\"ENABLE_SEND_{0}\" STATE=\"{1}\" />\r\n";
 
 	/*----------------------------------------------------------------------------------------
@@ -89,50 +88,48 @@ public class GazepointClient : MonoBehaviour
     */
     private void Update()
     {
-        /* Read into the buffer from the stream. */
+        /* Read the latest data from the stream into a buffer. */
         byte[] buffer = new byte[_bufferSize];
-        _dataStream.Read(buffer, 0, buffer.Length);
+
+        while (_dataStream.DataAvailable)
+        {
+            _dataStream.Read(buffer, 0, buffer.Length);
+        }
+
         _dataIn += Encoding.UTF8.GetString(buffer);
 
-        /* Remove an incomplete trailing record, if it is present. */
-        Match m = Regex.Match(_dataIn, "<.*>");
+        /* Extract the first available record. */
+        Match m = Regex.Match(_dataIn, RECORD_REGEX);
         if (m.Success)
         {
             _dataIn = m.Value;
 
-            /* Remove non-data records. */
-            _dataIn = Regex.Replace(_dataIn, "<N?ACK[^>]*>", "");   /* Remove ACKs and NACKs. */
-            _dataIn = Regex.Replace(_dataIn, "<CAL[^>]*>", "");     /* Remove CALs. */
+            /* Read the record. */
+            double time_val;
+            double fpogx;
+            double fpogy;
+            int fpog_valid;
+            int startindex, endindex;
 
-            /* If there are any complete data records present, read them. */
-            if (_dataIn.IndexOf(RECORD_START_FLAG) != -1)
-            {
-                double time_val;
-                double fpogx;
-                double fpogy;
-                int fpog_valid;
-                int startindex, endindex;
+            // Process _dataIn string to extract FPOGX, FPOGY, etc...
+            startindex = _dataIn.IndexOf("TIME=\"") + "TIME=\"".Length;
+            endindex = _dataIn.IndexOf("\"", startindex);
+            time_val = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
 
-                // Process _dataIn string to extract FPOGX, FPOGY, etc...
-                startindex = _dataIn.IndexOf("TIME=\"") + "TIME=\"".Length;
-                endindex = _dataIn.IndexOf("\"", startindex);
-                time_val = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+            startindex = _dataIn.IndexOf("FPOGX=\"") + "FPOGX=\"".Length;
+            endindex = _dataIn.IndexOf("\"", startindex);
+            fpogx = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
 
-                startindex = _dataIn.IndexOf("FPOGX=\"") + "FPOGX=\"".Length;
-                endindex = _dataIn.IndexOf("\"", startindex);
-                fpogx = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+            startindex = _dataIn.IndexOf("FPOGY=\"") + "FPOGY=\"".Length;
+            endindex = _dataIn.IndexOf("\"", startindex);
+            fpogy = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
 
-                startindex = _dataIn.IndexOf("FPOGY=\"") + "FPOGY=\"".Length;
-                endindex = _dataIn.IndexOf("\"", startindex);
-                fpogy = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+            startindex = _dataIn.IndexOf("FPOGV=\"") + "FPOGV=\"".Length;
+            endindex = _dataIn.IndexOf("\"", startindex);
+            fpog_valid = Int32.Parse(_dataIn.Substring(startindex, endindex - startindex));
 
-                startindex = _dataIn.IndexOf("FPOGV=\"") + "FPOGV=\"".Length;
-                endindex = _dataIn.IndexOf("\"", startindex);
-                fpog_valid = Int32.Parse(_dataIn.Substring(startindex, endindex - startindex));
-
-                Debug.Log(string.Format("Raw data: {0}", _dataIn));
-                Debug.Log(string.Format("Processed data: Time {0}, Gaze ({1},{2}) Valid={3}", time_val, fpogx, fpogy, fpog_valid));
-            }
+            Debug.Log(string.Format("Raw data: {0}", _dataIn));
+            Debug.Log(string.Format("Processed data: Time {0}, Gaze ({1},{2}) Valid={3}", time_val, fpogx, fpogy, fpog_valid));
         }
 
         _dataIn = "";
