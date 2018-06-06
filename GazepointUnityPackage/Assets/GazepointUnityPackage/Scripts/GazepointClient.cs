@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GazepointUnityPackage
 {
@@ -26,22 +28,22 @@ public class GazepointClient : MonoBehaviour
 	----------------------------------------------------------------------------------------*/
 	/* Client data */
     [SerializeField] private int _serverPort = 4242;
-    [SerializeField] private string _serverAddress = "127.0.0.1"; 
+    [SerializeField] private string _serverAddress = "127.0.0.1";
+    [SerializeField] private int _bufferSize = 1024;   /* Increase this if reading incomplete data from server. */
     private TcpClient _client;
     private NetworkStream _dataStream;
     private StreamWriter _dataWriter;
     private string _dataIn;
     
     /* Data record types */
-    public GazepointRecordType RECORD_CURSOR = new GazepointRecordType("CURSOR");
     public GazepointRecordType RECORD_DATA = new GazepointRecordType("DATA");
+    public GazepointRecordType RECORD_CURSOR = new GazepointRecordType("CURSOR");
     public GazepointRecordType RECORD_POG_FIX = new GazepointRecordType("POG_FIX");
     public GazepointRecordType RECORD_TIME = new GazepointRecordType("TIME");
     private List<GazepointRecordType> _recordTypes;
 
     /* Data reading options */
     [SerializeField] private bool _enableReadCursor = false;
-    [SerializeField] private bool _enableReadData = false;
     [SerializeField] private bool _enableReadPogFix = false;
     [SerializeField] private bool _enableReadTime = false;
 
@@ -87,24 +89,53 @@ public class GazepointClient : MonoBehaviour
     */
     private void Update()
     {
-        //Debug.Log("loop");
-        int ch = _dataStream.ReadByte();
-        if (ch != -1)
-        {
-            _dataIn += (char)ch;
-            
-            /* If a full record has been read... */
-            if (_dataIn.IndexOf(RECORD_END_FLAG) != -1)					
-            {
-                /* If the record is a data record... */
-                if (_dataIn.IndexOf(RECORD_START_FLAG) != -1)
-                {
-                    Debug.Log("data here");
-                }
+        /* Read into the buffer from the stream. */
+        byte[] buffer = new byte[_bufferSize];
+        _dataStream.Read(buffer, 0, buffer.Length);
+        _dataIn += Encoding.UTF8.GetString(buffer);
 
-                _dataIn = "";
+        /* Remove an incomplete trailing record, if it is present. */
+        Match m = Regex.Match(_dataIn, "<.*>");
+        if (m.Success)
+        {
+            _dataIn = m.Value;
+
+            /* Remove non-data records. */
+            _dataIn = Regex.Replace(_dataIn, "<N?ACK[^>]*>", "");   /* Remove ACKs and NACKs. */
+            _dataIn = Regex.Replace(_dataIn, "<CAL[^>]*>", "");     /* Remove CALs. */
+
+            /* If there are any complete data records present, read them. */
+            if (_dataIn.IndexOf(RECORD_START_FLAG) != -1)
+            {
+                double time_val;
+                double fpogx;
+                double fpogy;
+                int fpog_valid;
+                int startindex, endindex;
+
+                // Process _dataIn string to extract FPOGX, FPOGY, etc...
+                startindex = _dataIn.IndexOf("TIME=\"") + "TIME=\"".Length;
+                endindex = _dataIn.IndexOf("\"", startindex);
+                time_val = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+
+                startindex = _dataIn.IndexOf("FPOGX=\"") + "FPOGX=\"".Length;
+                endindex = _dataIn.IndexOf("\"", startindex);
+                fpogx = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+
+                startindex = _dataIn.IndexOf("FPOGY=\"") + "FPOGY=\"".Length;
+                endindex = _dataIn.IndexOf("\"", startindex);
+                fpogy = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+
+                startindex = _dataIn.IndexOf("FPOGV=\"") + "FPOGV=\"".Length;
+                endindex = _dataIn.IndexOf("\"", startindex);
+                fpog_valid = Int32.Parse(_dataIn.Substring(startindex, endindex - startindex));
+
+                Debug.Log(string.Format("Raw data: {0}", _dataIn));
+                Debug.Log(string.Format("Processed data: Time {0}, Gaze ({1},{2}) Valid={3}", time_val, fpogx, fpogy, fpog_valid));
             }
         }
+
+        _dataIn = "";
     }
 
     /**
@@ -126,9 +157,9 @@ public class GazepointClient : MonoBehaviour
     private void InitRecordReading()
     {
         SetRead(RECORD_CURSOR, _enableReadCursor);
-        SetRead(RECORD_DATA, _enableReadData);
         SetRead(RECORD_POG_FIX, _enableReadPogFix);
         SetRead(RECORD_TIME, _enableReadTime);
+        SetRead(RECORD_DATA, true);
     }
 
     /**
@@ -136,8 +167,8 @@ public class GazepointClient : MonoBehaviour
     */
     private void InitRecordTypesList()
     {
-        _recordTypes.Add(RECORD_CURSOR);
         _recordTypes.Add(RECORD_DATA);
+        _recordTypes.Add(RECORD_CURSOR);
         _recordTypes.Add(RECORD_POG_FIX);
         _recordTypes.Add(RECORD_TIME);
     }
@@ -147,7 +178,7 @@ public class GazepointClient : MonoBehaviour
     */
 	public void SetRead(GazepointRecordType record, bool read)
     {
-        _dataWriter.Write(string.Format(ENABLE_SEND, record.Name, read ? 1 : 0));
+        _dataWriter.Write(string.Format(ENABLE_SEND, record.EnableId, read ? 1 : 0));
     }
 
     /**
@@ -161,7 +192,7 @@ public class GazepointClient : MonoBehaviour
     {
         foreach (GazepointRecordType eachRecord in _recordTypes)
         {
-            _dataWriter.Write(string.Format(ENABLE_SEND, eachRecord.Name, read ? 1 : 0));
+            _dataWriter.Write(string.Format(ENABLE_SEND, eachRecord.EnableId, read ? 1 : 0));
         }
     }
 
@@ -173,7 +204,11 @@ public class GazepointClient : MonoBehaviour
     */
     public class GazepointRecordType
     {
-        public readonly string Name;
-        public GazepointRecordType (string name) { Name = name; }
+        public readonly string EnableId;
+
+        public GazepointRecordType (string enableId)
+        {
+            EnableId = enableId;
+        }
     }
 }}
