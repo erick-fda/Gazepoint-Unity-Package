@@ -33,7 +33,7 @@ public class GazepointClient : MonoBehaviour
     private TcpClient _client;
     private NetworkStream _dataStream;
     private StreamWriter _dataWriter;
-    private string _dataIn;
+    private string _dataIn = "";
     
     /* Data record types */
     public GazepointRecordType RECORD_DATA = new GazepointRecordType("DATA");
@@ -70,6 +70,8 @@ public class GazepointClient : MonoBehaviour
     /* String constants */
     private const string RECORD_REGEX = "<REC[^>]*>";
     private const string ENABLE_SEND = "<SET ID=\"ENABLE_SEND_{0}\" STATE=\"{1}\" />\r\n";
+    private const string FIELD_START_FLAG = "{0}=\"";
+    private const string FIELD_END_FLAG = "\"";
 
     /* Record variables */
     private int _counter;
@@ -202,7 +204,7 @@ public class GazepointClient : MonoBehaviour
             _dataStream.Read(buffer, 0, buffer.Length);
         }
 
-        _dataIn += Encoding.UTF8.GetString(buffer);
+        _dataIn = Encoding.UTF8.GetString(buffer);
 
         /* Extract the first available record. */
         Match m = Regex.Match(_dataIn, RECORD_REGEX);
@@ -294,6 +296,55 @@ public class GazepointClient : MonoBehaviour
     }
 
     /**
+        Parses and returns the boolean value of the given field from the most recently read 
+        record.
+    */
+    private bool ParseBool(string fieldId)
+    {
+        return ParseInt(fieldId) > 0;
+    }
+
+    /**
+        Parses and returns the float value of the given field from the most recently read 
+        record.
+    */
+    private float ParseFloat(string fieldId)
+    {
+        return (float) Double.Parse(ParseString(fieldId));
+    }
+
+    /**
+        Parses and returns the int value of the given field from the most recently read 
+        record.
+    */
+    private int ParseInt(string fieldId)
+    {
+        return Int32.Parse(ParseString(fieldId));
+    }
+
+    /**
+        Parses and returns the string value of the given field from the most recently read 
+        record.
+    */
+    private string ParseString(string fieldId)
+    {
+        int startIndex, endIndex;
+        string startFlag = string.Format(FIELD_START_FLAG, fieldId);
+        startIndex = _dataIn.IndexOf(startFlag) + startFlag.Length;
+        endIndex = _dataIn.IndexOf(FIELD_END_FLAG, startIndex);
+        return _dataIn.Substring(startIndex, endIndex - startIndex);
+    }
+
+    /**
+        Parses and returns the ulong value of the given field from the most recently read 
+        record.
+    */
+    private ulong ParseUlong(string fieldId)
+    {
+        return (ulong) Decimal.Parse(ParseString(fieldId));
+    }
+
+    /**
         Updates all data values being read from the server with the most recently sent 
         values.
     */
@@ -301,7 +352,7 @@ public class GazepointClient : MonoBehaviour
     {
         if (_enableReadCounter)
         {
-
+            
         }
         
         if (_enableReadCursor)
