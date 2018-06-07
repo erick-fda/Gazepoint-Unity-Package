@@ -34,8 +34,14 @@ public class GazepointClient : MonoBehaviour
     private NetworkStream _dataStream;
     private StreamWriter _dataWriter;
     private string _dataIn = "";
+
+    /* String constants */
+    private const string RECORD_REGEX = "<REC[^>]*>";
+    private const string ENABLE_SEND = "<SET ID=\"ENABLE_SEND_{0}\" STATE=\"{1}\" />\r\n";
+    private const string FIELD_START_FLAG = "{0}=\"";
+    private const string FIELD_END_FLAG = "\"";
     
-    /* Data record types */
+    /* Record types */
     public GazepointRecordType RECORD_DATA = new GazepointRecordType("DATA");
     public GazepointRecordType RECORD_COUNTER = new GazepointRecordType("COUNTER");
     public GazepointRecordType RECORD_CURSOR = new GazepointRecordType("CURSOR");
@@ -52,7 +58,7 @@ public class GazepointClient : MonoBehaviour
     public GazepointRecordType RECORD_USER_DATA = new GazepointRecordType("USER_DATA");
     private List<GazepointRecordType> _recordTypes;
 
-    /* Data reading options */
+    /* Record reading options */
     [SerializeField] private bool _enableReadCounter = false;
     [SerializeField] private bool _enableReadCursor = false;
     [SerializeField] private bool _enableReadLeftEye = false;
@@ -67,13 +73,51 @@ public class GazepointClient : MonoBehaviour
     [SerializeField] private bool _enableReadTimeTick = false;
     [SerializeField] private bool _enableReadUserData = false;
 
-    /* String constants */
-    private const string RECORD_REGEX = "<REC[^>]*>";
-    private const string ENABLE_SEND = "<SET ID=\"ENABLE_SEND_{0}\" STATE=\"{1}\" />\r\n";
-    private const string FIELD_START_FLAG = "{0}=\"";
-    private const string FIELD_END_FLAG = "\"";
+    /* Record field IDs */
+    private const string COUNTER_ID = "CNT";
+    private const string CURSOR_X_ID = "CX";
+    private const string CURSOR_Y_ID = "CY";
+    private const string CURSOR_STATE_ID = "CS";
+    private const string LEFT_EYE_X_ID = "LEYEX";
+    private const string LEFT_EYE_Y_ID = "LEYEY";
+    private const string LEFT_EYE_Z_ID = "LEYEZ";
+    private const string LEFT_EYE_PUPIL_DIAMETER_ID = "LPUPILD";
+    private const string LEFT_EYE_PUPIL_VALID_ID = "LPUPILV";
+    private const string RIGHT_EYE_X_ID = "REYEX";
+    private const string RIGHT_EYE_Y_ID = "REYEY";
+    private const string RIGHT_EYE_Z_ID = "REYEZ";
+    private const string RIGHT_EYE_PUPIL_DIAMETER_ID = "RPUPILD";
+    private const string RIGHT_EYE_PUPIL_VALID_ID = "RPUPILV";
+    private const string FIXED_POG_X_ID = "FPOGX";
+    private const string FIXED_POG_Y_ID = "FPOGY";
+    private const string FIXED_POG_START_ID = "FPOGS";
+    private const string FIXED_POG_DURATION_ID = "FPOGD";
+    private const string FIXED_POG_ID_ID = "FPOGID";
+    private const string FIXED_POG_VALID_ID = "FPOGV";
+    private const string LEFT_POG_X_ID = "LPOGX";
+    private const string LEFT_POG_Y_ID = "LPOGY";
+    private const string LEFT_POG_VALID_ID = "LPOGV";
+    private const string RIGHT_POG_X_ID = "RPOGX";
+    private const string RIGHT_POG_Y_ID = "RPOGY";
+    private const string RIGHT_POG_VALID_ID = "RPOGV";
+    private const string BEST_POG_X_ID = "BPOGX";
+    private const string BEST_POG_Y_ID = "BPOGY";
+    private const string BEST_POG_VALID_ID = "BPOGV";
+    private const string LEFT_PUPIL_X_ID = "LPCX";
+    private const string LEFT_PUPIL_Y_ID = "LPCY";
+    private const string LEFT_PUPIL_DIAMETER_ID = "LPD";
+    private const string LEFT_PUPIL_SCALE_ID = "LPS";
+    private const string LEFT_PUPIL_VALID_ID = "LPV";
+    private const string RIGHT_PUPIL_X_ID = "RPCX";
+    private const string RIGHT_PUPIL_Y_ID = "RPCY";
+    private const string RIGHT_PUPIL_DIAMETER_ID = "RPD";
+    private const string RIGHT_PUPIL_SCALE_ID = "RPS";
+    private const string RIGHT_PUPIL_VALID_ID = "RPV";
+    private const string TIME_ID = "TIME";
+    private const string TIME_TICK_ID = "TIME_TICK";
+    private const string USER_DATA_ID = "USER";
 
-    /* Record variables */
+    /* Record field variables */
     private int _counter;
     private float _cursorX;
     private float _cursorY;
@@ -120,7 +164,7 @@ public class GazepointClient : MonoBehaviour
 	/*----------------------------------------------------------------------------------------
 		Instance Properties
 	----------------------------------------------------------------------------------------*/
-	/* Record properties */
+	/* Record field properties */
     public int Counter { get { return _counter; } private set { _counter = value; } }
     public float CursorX { get { return _cursorX; } private set { _cursorX = value; } }
     public float CursorY { get { return _cursorY; } private set { _cursorY = value; } }
@@ -415,32 +459,23 @@ public class GazepointClient : MonoBehaviour
 
         }
 
-        /* Read the record. */
-        double time_val;
-        double fpogx;
-        double fpogy;
-        int fpog_valid;
-        int startindex, endindex;
+        // /* Read the record. */
+        // float time_val;
+        // float fpogx;
+        // float fpogy;
+        // int fpog_valid;
 
-        // Process _dataIn string to extract FPOGX, FPOGY, etc...
-        startindex = _dataIn.IndexOf("TIME=\"") + "TIME=\"".Length;
-        endindex = _dataIn.IndexOf("\"", startindex);
-        time_val = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+        // // Process _dataIn string to extract FPOGX, FPOGY, etc...
+        // time_val = ParseFloat(TIME_ID);
 
-        startindex = _dataIn.IndexOf("FPOGX=\"") + "FPOGX=\"".Length;
-        endindex = _dataIn.IndexOf("\"", startindex);
-        fpogx = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+        // fpogx = ParseFloat(FIXED_POG_X_ID);
 
-        startindex = _dataIn.IndexOf("FPOGY=\"") + "FPOGY=\"".Length;
-        endindex = _dataIn.IndexOf("\"", startindex);
-        fpogy = Double.Parse(_dataIn.Substring(startindex, endindex - startindex));
+        // fpogy = ParseFloat(FIXED_POG_Y_ID);
 
-        startindex = _dataIn.IndexOf("FPOGV=\"") + "FPOGV=\"".Length;
-        endindex = _dataIn.IndexOf("\"", startindex);
-        fpog_valid = Int32.Parse(_dataIn.Substring(startindex, endindex - startindex));
+        // fpog_valid = ParseInt(FIXED_POG_VALID_ID);
 
-        Debug.Log(string.Format("Raw data: {0}", _dataIn));
-        Debug.Log(string.Format("Processed data: Time {0}, Gaze ({1},{2}) Valid={3}", time_val, fpogx, fpogy, fpog_valid));
+        // Debug.Log(string.Format("Raw data: {0}", _dataIn));
+        // Debug.Log(string.Format("Processed data: Time {0}, Gaze ({1},{2}) Valid={3}", time_val, fpogx, fpogy, fpog_valid));
     }
 
     /*----------------------------------------------------------------------------------------
