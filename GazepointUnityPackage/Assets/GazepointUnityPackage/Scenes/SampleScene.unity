@@ -250,6 +250,61 @@ Prefab:
       propertyPath: _enableReadFixedPog
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadCounter
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadRightEye
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadLeftEye
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadLeftPog
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadRightPog
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadBestPog
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadLeftPupil
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadRightPupil
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadTimeTick
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _enableReadUserData
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114403579229708056, guid: f5103aa6d31710b4caa9c8e64269bad6,
+        type: 2}
+      propertyPath: _bufferSize
+      value: 1024
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: f5103aa6d31710b4caa9c8e64269bad6, type: 2}
   m_IsPrefabParent: 0

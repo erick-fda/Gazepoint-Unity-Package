@@ -29,7 +29,7 @@ public class GazepointClient : MonoBehaviour
 	/* Client data */
     [SerializeField] private int _serverPort = 4242;
     [SerializeField] private string _serverAddress = "127.0.0.1";
-    [SerializeField] private int _bufferSize = 1024;   /* Increase this if no complete records are being read from the server. */
+    [SerializeField] private int _bufferSize = 1024;   /* Increase this if _dataIn is coming up empty. */
     private TcpClient _client;
     private NetworkStream _dataStream;
     private StreamWriter _dataWriter;
@@ -396,86 +396,100 @@ public class GazepointClient : MonoBehaviour
     {
         if (_enableReadCounter)
         {
-            
+            Counter = ParseInt(COUNTER_ID);
         }
         
         if (_enableReadCursor)
         {
-
+            CursorX = ParseFloat(CURSOR_X_ID);
+            CursorY = ParseFloat(CURSOR_Y_ID);
+            CursorState = ParseInt(CURSOR_STATE_ID);
         }
         
         if (_enableReadLeftEye)
         {
-
+            LeftEyeX = ParseFloat(LEFT_EYE_X_ID);
+            LeftEyeY = ParseFloat(LEFT_EYE_Y_ID);
+            LeftEyeZ = ParseFloat(LEFT_EYE_Z_ID);
+            LeftEyePupilDiameter = ParseFloat(LEFT_EYE_PUPIL_DIAMETER_ID);
+            LeftEyePupilValid = ParseBool(LEFT_EYE_PUPIL_VALID_ID);
         }
         
         if (_enableReadRightEye)
         {
-
+            RightEyeX = ParseFloat(RIGHT_EYE_X_ID);
+            RightEyeY = ParseFloat(RIGHT_EYE_Y_ID);
+            RightEyeZ = ParseFloat(RIGHT_EYE_Z_ID);
+            RightEyePupilDiameter = ParseFloat(RIGHT_EYE_PUPIL_DIAMETER_ID);
+            RightEyePupilValid = ParseBool(RIGHT_EYE_PUPIL_VALID_ID);
         }
         
         if (_enableReadFixedPog)
         {
-
+            FixedPogX = ParseFloat(FIXED_POG_X_ID);
+            FixedPogY = ParseFloat(FIXED_POG_Y_ID);
+            FixedPogStart = ParseFloat(FIXED_POG_START_ID);
+            FixedPogDuration = ParseFloat(FIXED_POG_DURATION_ID);
+            FixedPogId = ParseInt(FIXED_POG_ID_ID);
+            FixedPogValid = ParseBool(FIXED_POG_VALID_ID);
         }
         
         if (_enableReadLeftPog)
         {
-
+            LeftPogX = ParseFloat(LEFT_POG_X_ID);
+            LeftPogY = ParseFloat(LEFT_POG_Y_ID);
+            LeftPogValid = ParseBool(LEFT_POG_VALID_ID);
         }
         
         if (_enableReadRightPog)
         {
-
+            RightPogX = ParseFloat(RIGHT_POG_X_ID);
+            RightPogY = ParseFloat(RIGHT_POG_Y_ID);
+            RightPogValid = ParseBool(RIGHT_POG_VALID_ID);
         }
         
         if (_enableReadBestPog)
         {
-
+            BestPogX = ParseFloat(BEST_POG_X_ID);
+            BestPogY = ParseFloat(BEST_POG_Y_ID);
+            BestPogValid = ParseBool(BEST_POG_VALID_ID);
         }
         
         if (_enableReadLeftPupil)
         {
-
+            LeftPupilX = ParseFloat(LEFT_PUPIL_X_ID);
+            LeftPupilY = ParseFloat(LEFT_PUPIL_Y_ID);
+            LeftPupilDiameter = ParseFloat(LEFT_PUPIL_DIAMETER_ID);
+            LeftPupilScale = ParseFloat(LEFT_PUPIL_SCALE_ID);
+            LeftPupilValid = ParseBool(LEFT_PUPIL_VALID_ID);
         }
         
         if (_enableReadRightPupil)
         {
-
+            RightPupilX = ParseFloat(RIGHT_PUPIL_X_ID);
+            RightPupilY = ParseFloat(RIGHT_PUPIL_Y_ID);
+            RightPupilDiameter = ParseFloat(RIGHT_PUPIL_DIAMETER_ID);
+            RightPupilScale = ParseFloat(RIGHT_PUPIL_SCALE_ID);
+            RightPupilValid = ParseBool(RIGHT_PUPIL_VALID_ID);
         }
         
         if (_enableReadTime)
         {
-
+            Time = ParseFloat(TIME_ID);
         }
         
         if (_enableReadTimeTick)
         {
-
+            TimeTick = ParseUlong(TIME_TICK_ID);
         }
         
         if (_enableReadUserData)
         {
-
+            UserData = ParseString(USER_DATA_ID);
         }
 
-        // /* Read the record. */
-        // float time_val;
-        // float fpogx;
-        // float fpogy;
-        // int fpog_valid;
-
-        // // Process _dataIn string to extract FPOGX, FPOGY, etc...
-        // time_val = ParseFloat(TIME_ID);
-
-        // fpogx = ParseFloat(FIXED_POG_X_ID);
-
-        // fpogy = ParseFloat(FIXED_POG_Y_ID);
-
-        // fpog_valid = ParseInt(FIXED_POG_VALID_ID);
-
         // Debug.Log(string.Format("Raw data: {0}", _dataIn));
-        // Debug.Log(string.Format("Processed data: Time {0}, Gaze ({1},{2}) Valid={3}", time_val, fpogx, fpogy, fpog_valid));
+        // Debug.Log(string.Format("Processed data: Time {0}, Gaze ({1},{2}) Valid={3}", Time, FixedPogX, FixedPogY, FixedPogValid));
     }
 
     /*----------------------------------------------------------------------------------------
