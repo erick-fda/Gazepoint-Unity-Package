@@ -19,7 +19,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace GazepointUnityPackage
+namespace GazepointUnity
 {
 public class GazepointClient : MonoBehaviour
 {
@@ -164,7 +164,7 @@ public class GazepointClient : MonoBehaviour
 	/*----------------------------------------------------------------------------------------
 		Instance Properties
 	----------------------------------------------------------------------------------------*/
-	/* Record field properties */
+    /* Record field properties */
     public int Counter { get { return _counter; } private set { _counter = value; } }
     public float CursorX { get { return _cursorX; } private set { _cursorX = value; } }
     public float CursorY { get { return _cursorY; } private set { _cursorY = value; } }
@@ -229,9 +229,7 @@ public class GazepointClient : MonoBehaviour
         /* Set up writer. */
         _dataStream = _client.GetStream();
         _dataWriter = new StreamWriter(_dataStream);
-
         InitRecordReading();
-
         _dataWriter.Flush();
     }
 
@@ -259,16 +257,6 @@ public class GazepointClient : MonoBehaviour
         }
 
         _dataIn = "";
-    }
-
-    /**
-        Close client connection.
-    */
-    private void OnDestroy()
-    {
-        _dataWriter.Close();
-        _dataStream.Close();
-        _client.Close();
     }
     
 	/*----------------------------------------------------------------------------------------

@@ -53,3 +53,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _serverPort: 4242
   _serverAddress: 127.0.0.1
+  _bufferSize: 1024
+  _enableReadCounter: 0
+  _enableReadCursor: 0
+  _enableReadLeftEye: 0
+  _enableReadRightEye: 0
+  _enableReadFixedPog: 0
+  _enableReadLeftPog: 0
+  _enableReadRightPog: 0
+  _enableReadBestPog: 0
+  _enableReadLeftPupil: 0
+  _enableReadRightPupil: 0
+  _enableReadTime: 0
+  _enableReadTimeTick: 0
+  _enableReadUserData: 0
